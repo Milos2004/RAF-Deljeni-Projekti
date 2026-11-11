@@ -23,7 +23,6 @@ esp_err_t buzzer_init(void)
         return err;
     }
 
-    // Inicijalno iskljucen (1 za active-low, promeni u 0 ako je active-high)
     gpio_set_level(BUZZER_GPIO, 1);
     ESP_LOGI(TAG, "Buzzer inicijalizovan na GPIO1");
     return ESP_OK;
@@ -32,11 +31,11 @@ esp_err_t buzzer_init(void)
 esp_err_t buzzer_on(void)
 {
     ESP_LOGI(TAG, "Ukljucujem buzzer");
-    return gpio_set_level(BUZZER_GPIO, 0); // Promeni u 1 ako je active-high
+    return gpio_set_level(BUZZER_GPIO, 0); 
 }
 
 esp_err_t buzzer_off(void)
 {
     ESP_LOGI(TAG, "Iskljucujem buzzer");
-    return gpio_set_level(BUZZER_GPIO, 1); // Promeni u 0 ako je active-high
+    return gpio_set_level(BUZZER_GPIO, 1);
 }

@@ -31,7 +31,6 @@ esp_err_t diode_init(const diode_config_t *config, diode_handle_t *handle) {
         return err;
     }
 
-    // Postavi početno stanje na isključeno
     diode_off(handle);
 
     ESP_LOGI(TAG, "Diode komponenta uspešno inicijalizovana");
