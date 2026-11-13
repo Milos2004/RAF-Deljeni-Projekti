@@ -1,3 +1,3 @@
-idf_component_register(SRCS "oled.c"
+idf_component_register(SRCS "OLED.c"
                     INCLUDE_DIRS "include"
-                    REQUIRES driver)
+                    REQUIRES esp_driver_i2c esp_driver_gpio)

@@ -2,11 +2,14 @@
 #define OLED_H
 
 #include "driver/i2c_master.h"
-#include "driver/gpio.h"
+#include "esp_err.h"
 
-void oled_init(i2c_master_dev_handle_t *out_dev_handle);
-void oled_display_text(i2c_master_dev_handle_t dev, uint8_t page, const char *text);
-void oled_clear(i2c_master_dev_handle_t dev);
-int oled_read_encoder(void);
+// Definicija I2C pinova (Prilagodi pinove ako koristiš druge umesto GPIO 8 i 9)
+#define OLED_SDA_PIN GPIO_NUM_4
+#define OLED_SCL_PIN GPIO_NUM_5
 
-#endif
+void oled_init(i2c_master_dev_handle_t *dev_handle);
+void oled_clear(i2c_master_dev_handle_t dev_handle);
+void oled_display_text(i2c_master_dev_handle_t dev_handle, int line, const char *text);
+
+#endif // OLED_H
