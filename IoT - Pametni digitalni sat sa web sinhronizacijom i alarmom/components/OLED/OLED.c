@@ -6,31 +6,31 @@
 
 static const char *TAG = "OLED";
 
-#define OLED_I2C_ADDRESS 0x3C // Standardna adresa za SSD1306 OLED (često je i 0x3D)
+#define OLED_I2C_ADDRESS 0x3C // Standardna adresa za SSD1306 OLED
 
 // Osnovne komande za inicijalizaciju SSD1306 ekrana
 static const uint8_t oled_init_cmds[] = {
-    0xAE, // Display OFF
-    0xD5, 0x80, // Set Display Clock Divide Ratio / Oscillator Frequency
-    0xA8, 0x3F, // Set Multiplex Ratio (1/64 duty)
-    0xD3, 0x00, // Set Display Offset
-    0x40, // Set Start Line (0)
-    0x8D, 0x14, // Enable Charge Pump Regulator
-    0x20, 0x00, // Memory Addressing Mode (Horizontal)
-    0xA1, // Set Segment Re-map (Column 127 mapped to SEG0)
-    0xC8, // Set COM Output Scan Direction (Reversed)
-    0xDA, 0x12, // Set COM Pins Hardware Configuration
-    0x81, 0xCF, // Set Contrast Control
-    0xD9, 0xF1, // Set Pre-charge Period
-    0xDB, 0x40, // Set VCOMH Deselect Level
-    0xA4, // Entire Display On (Resume)
-    0xA6, // Set Normal Display (Not inverted)
-    0xAF  // Display ON
+    0xAE,
+    0xD5, 0x80,
+    0xA8, 0x3F, 
+    0xD3, 0x00, 
+    0x40, 
+    0x8D, 0x14, 
+    0x20, 0x00,
+    0xA1, 
+    0xC8, 
+    0xDA, 0x12, 
+    0x81, 0xCF,
+    0xD9, 0xF1,
+    0xDB, 0x40,
+    0xA4, 
+    0xA6, 
+    0xAF  
 };
 
 void oled_init(i2c_master_dev_handle_t *dev_handle)
 {
-    // Konfiguracija I2C master magistrale
+    // Konfiguracija I2C
     i2c_master_bus_config_t bus_config = {
         .i2c_port = I2C_NUM_0,
         .sda_io_num = OLED_SDA_PIN,
@@ -54,7 +54,7 @@ void oled_init(i2c_master_dev_handle_t *dev_handle)
 
     // Slanje inicijalizacionih komandi ekranu
     uint8_t buffer[sizeof(oled_init_cmds) + 1];
-    buffer[0] = 0x00; // Co = 0, D/C# = 0 (Command stream)
+    buffer[0] = 0x00;
     memcpy(&buffer[1], oled_init_cmds, sizeof(oled_init_cmds));
 
     ESP_ERROR_CHECK(i2c_master_transmit(*dev_handle, buffer, sizeof(buffer), pdMS_TO_TICKS(1000)));
@@ -65,27 +65,26 @@ void oled_clear(i2c_master_dev_handle_t dev_handle)
 {
     // Kreiranje praznog bafera za čišćenje ekrana (128 x 64 piksela = 1024 bajta)
     uint8_t zero_buffer[129];
-    zero_buffer[0] = 0x40; // Co = 0, D/C# = 1 (Data stream)
+    zero_buffer[0] = 0x40;
     memset(&zero_buffer[1], 0x00, 128);
 
     for (int page = 0; page < 8; page++) {
-        // Postavljanje pozicije na početak svake stranice
+        
         uint8_t set_page_cmds[] = {
-            0x00, // Komandni režim
-            0xB0 | page, // Set Page Start Address
-            0x00, // Set Lower Column Address (0)
-            0x10  // Set Higher Column Address (0)
+            0x00, 
+            0xB0 | page,
+            0x00,
+            0x10  
         };
         i2c_master_transmit(dev_handle, set_page_cmds, sizeof(set_page_cmds), pdMS_TO_TICKS(1000));
 
-        // Upisivanje nula u celu stranicu (128 kolona)
         for (int col = 0; col < 128; col += 128) {
             i2c_master_transmit(dev_handle, zero_buffer, 129, pdMS_TO_TICKS(1000));
         }
     }
 }
 
-// Jednostavna font tabela za karaktere (osnovna 5x7 matrica)
+// tabela za karaktere(osnovna 5x7 matrica)
 static const uint8_t font5x7[][5] = {
     [' '] = {0x00, 0x00, 0x00, 0x00, 0x00},
     ['!'] = {0x00, 0x00, 0x5F, 0x00, 0x00},
@@ -126,7 +125,7 @@ static const uint8_t font5x7[][5] = {
     ['T'] = {0x01, 0x01, 0x7F, 0x01, 0x01},
     ['V'] = {0x1F, 0x20, 0x40, 0x20, 0x1F},
     ['Z'] = {0x61, 0x51, 0x49, 0x45, 0x43},
-    // Mala slova (mapirana na velika da bi se izbegle greške u prikazu)
+    // mala slova mapirana na velika da bi se izbegle greske u prikazu
     ['a'] = {0x7C, 0x12, 0x11, 0x12, 0x7C},
     ['c'] = {0x3E, 0x41, 0x41, 0x41, 0x22},
     ['d'] = {0x7F, 0x41, 0x41, 0x22, 0x1C},
@@ -152,7 +151,7 @@ void oled_display_text(i2c_master_dev_handle_t dev_handle, int line, const char 
 {
     if (line < 0 || line > 7) return;
 
-    // Postavljanje stranice (reda) na OLED-u
+    
     uint8_t set_page_cmds[] = {
         0x00,
         0xB0 | line,
@@ -163,7 +162,7 @@ void oled_display_text(i2c_master_dev_handle_t dev_handle, int line, const char 
 
     int len = strlen(text);
     uint8_t data_buf[128];
-    data_buf[0] = 0x40; // Data mode
+    data_buf[0] = 0x40; 
 
     int cursor = 1;
     for (int i = 0; i < len && cursor < 123; i++) {
@@ -177,16 +176,15 @@ void oled_display_text(i2c_master_dev_handle_t dev_handle, int line, const char 
 
         const uint8_t *glyph = font5x7[(int)c];
         if (!glyph) {
-            glyph = font5x7['?']; // Ako karakter ne postoji u fontu, stavi znak pitanja
+            glyph = font5x7['?']; 
         }
 
         for (int j = 0; j < 5; j++) {
             data_buf[cursor++] = glyph[j];
         }
-        data_buf[cursor++] = 0x00; // Razmak između karaktera
+        data_buf[cursor++] = 0x00; 
     }
 
-    // Popuni ostatak reda praznim mestima (brisanje starog teksta)
     while (cursor < 128) {
         data_buf[cursor++] = 0x00;
     }

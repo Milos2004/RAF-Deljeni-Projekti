@@ -11,7 +11,6 @@
 
 static const char *TAG = "SMART_CLOCK";
 
-// Stavke menija
 const char *menu_titles[] = {
     "Vreme",
     "Temperatura",
@@ -23,19 +22,15 @@ const char *menu_titles[] = {
 int current_index = 0;
 const int total_items = 5;
 
-// Definisanje pinova za LED diode
 #define LED_BLUE         GPIO_NUM_15
 #define LED_RED          GPIO_NUM_6
 #define LED_GREEN        GPIO_NUM_7
 
-// Rotacioni enkoder
 #define ENC_CLK_PIN      GPIO_NUM_10
 #define ENC_DT_PIN       GPIO_NUM_11
 
-// DHT11 pin
 #define DHT11_PIN        GPIO_NUM_42
 
-// Temperaturni prag za alarm (30 stepeni)
 #define TEMP_THRESHOLD   30.0
 
 // Čitanje rotacionog enkodera
@@ -70,11 +65,9 @@ void app_main(void) {
     light_sensor_init();
     buzzer_init(); 
 
-    // Inicijalizacija DHT11 senzora
     dht11_t dht_dev;
     dht11_init(&dht_dev, DHT11_PIN);
 
-    // Inicijalizacija LED dioda (izlazni pinovi)
     gpio_config_t io_conf = {
         .pin_bit_mask = (1ULL << LED_BLUE) |
                         (1ULL << LED_RED) |
@@ -86,7 +79,6 @@ void app_main(void) {
     };
     gpio_config(&io_conf);
 
-    // Konfiguracija rotacionog enkodera (ulazni pinovi sa pull-up otpornicima)
     gpio_config_t enc_conf = {
         .pin_bit_mask = (1ULL << ENC_CLK_PIN) |
                         (1ULL << ENC_DT_PIN),
@@ -110,7 +102,7 @@ void app_main(void) {
 
     while (1) {
 
-        // Čitanje rotacionog enkodera
+        // Citanje enkodera
         int enc = read_rotary_encoder();
 
         if (enc != 0) {
@@ -121,7 +113,7 @@ void app_main(void) {
                      menu_titles[current_index]);
         }
 
-        // DHT11 očitavanje na svake 3 sekunde (3000000 mikrosekundi)
+        // DHT11
         int64_t now = esp_timer_get_time();
 
         if (now - last_dht_read >= 3000000) {
@@ -146,7 +138,7 @@ void app_main(void) {
         // Čitanje senzora svetlosti
         int light_val = light_sensor_read();
 
-        // Osvežavanje menija na OLED-u ukoliko je promenjen izbor
+        
         if (current_index != last_index) {
             oled_clear(oled_dev);
             oled_display_text(oled_dev, 0, "SMART SAT");
@@ -156,7 +148,7 @@ void app_main(void) {
         char buffer[30];
         oled_display_text(oled_dev, 2, menu_titles[current_index]);
 
-        // Prikaz podataka na OLED-u u zavisnosti od izabranog menija
+       
         if (current_index == 0) {
             snprintf(buffer, sizeof(buffer), "Vreme: 12:30:45");
         } else if (current_index == 1) {
@@ -183,7 +175,7 @@ void app_main(void) {
 
         oled_display_text(oled_dev, 4, buffer);
 
-        // Kontrola LED dioda prema senzoru svetlosti
+        // Kontrola LED dioda
         if (light_val == 0) {
             gpio_set_level(LED_BLUE, 0);
             gpio_set_level(LED_RED, 0);
@@ -194,7 +186,6 @@ void app_main(void) {
             gpio_set_level(LED_GREEN, 0);
         }
 
-        // BUZZER - kontrola prema temperaturi (uključuje se kad je > 30 °C, bez ispisivanja statusa na OLED-u)
         if (dht_valid && current_temp >= TEMP_THRESHOLD) {
             buzzer_on();
             ESP_LOGW(TAG, "ALARM! Temperatura: %.1f C", current_temp);
